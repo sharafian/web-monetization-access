@@ -11,6 +11,8 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ilp-plugin": "^3.3.1",
+    "ilp-protocol-stream": "^1.8.9",
     "koa": "^2.7.0",
     "koa-router": "^7.4.0",
     "reduct": "^3.3.1",
