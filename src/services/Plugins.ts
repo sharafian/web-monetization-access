@@ -1,4 +1,4 @@
-import makePlugin from 'ilp-plugin'
+const makePlugin = require('ilp-plugin')
 
 export class Plugins {
   create () {
