@@ -26,10 +26,11 @@ The interaction between Web Monetization Access and your backend is just via a s
 
 ## Development TODOs
 
+- [x] encrypt query string params/metadata
 - [ ] allow support for BTP or HTTP plugin
 - [ ] proxy ILP streams to the payment pointer in q string
 - [ ] use websockets or long-polling or polling to fetch the tokens
-- [ ] algorithm to detect the bandwidth of a connection
+- [x] algorithm to detect the bandwidth of a connection
 - [ ] use public key signature for the validation of JWT
 - [ ] library that can be pulled into react for client
 - [ ] example server that uses the JWT
