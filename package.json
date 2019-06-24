@@ -11,6 +11,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "base64url": "^3.0.1",
     "ilp-plugin": "^3.3.1",
     "ilp-protocol-stream": "^1.8.9",
     "koa": "^2.7.0",
