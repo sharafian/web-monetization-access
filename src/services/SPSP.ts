@@ -1,5 +1,6 @@
 import { Config } from './Config'
 import { Plugins } from './Plugins'
+import { ConnectionTag } from './ConnectionTag'
 import { Context } from 'koa'
 import Router from 'koa-router'
 import { createServer, DataAndMoneyStream } from 'ilp-protocol-stream'
@@ -8,10 +9,12 @@ import { Injector } from 'reduct'
 export class SPSP {
   private config: Config
   private plugins: Plugins
+  private connectionTag: ConnectionTag
 
   constructor (deps: Injector) {
     this.config = deps(Config)
     this.plugins = deps(Plugins)
+    this.connectionTag = deps(ConnectionTag)
   }
 
   async start (router: Router) {
@@ -21,6 +24,9 @@ export class SPSP {
     })
 
     streamServer.on('connection', connection => {
+      const tag = this.connectionTag.decode(connection.connectionTag)
+      console.log('got connection tag of', tag)
+
       const onStream = (stream: DataAndMoneyStream) => {
         stream.setReceiveMax(Infinity)
         const onMoney = (amount: string) => {
@@ -63,7 +69,13 @@ export class SPSP {
         return ctx.throw(400, 'only application/spsp4+json is supported')
       }
 
-      const { destinationAccount, sharedSecret } = streamServer.generateAddressAndSecret()
+      if (ctx.querystring.length > 256) {
+        return ctx.throw(400, 'query string is too long; max 256 chars')
+      }
+
+      const tag = this.connectionTag.encode(ctx.querystring)
+      const { destinationAccount, sharedSecret } = streamServer
+        .generateAddressAndSecret(tag)
 
       return {
         destination_account: destinationAccount,
