@@ -53,9 +53,9 @@ export class SPSP {
       const onError = () => cleanUp()
       const cleanUp = () => {
         setImmediate(() => {
-          connection.removeListener(onStream)
-          connection.removeListener(onClose)
-          connection.removeListener(onError)
+          connection.removeListener('stream', onStream)
+          connection.removeListener('close', onClose)
+          connection.removeListener('error', onError)
         })
       }
 
@@ -65,7 +65,7 @@ export class SPSP {
     })
 
     router.get('/pay', async (ctx: Context) => {
-      if (!ctx.get('content-type').includes('application/spsp4+json')) {
+      if (!ctx.get('accept').includes('application/spsp4+json')) {
         return ctx.throw(400, 'only application/spsp4+json is supported')
       }
 
@@ -77,10 +77,12 @@ export class SPSP {
       const { destinationAccount, sharedSecret } = streamServer
         .generateAddressAndSecret(tag)
 
-      return {
+      ctx.body =  {
         destination_account: destinationAccount,
         shared_secret: sharedSecret.toString('base64')
       }
+
+      ctx.set('Content-Type', 'application/spsp4+json')
     })
   }
 }
