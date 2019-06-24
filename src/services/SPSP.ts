@@ -1,20 +1,24 @@
 import { Config } from './Config'
 import { Plugins } from './Plugins'
 import { ConnectionTag } from './ConnectionTag'
+import { MemoryStore } from './MemoryStore'
 import { Context } from 'koa'
 import Router from 'koa-router'
 import { createServer, DataAndMoneyStream } from 'ilp-protocol-stream'
 import { Injector } from 'reduct'
+import uuid from 'uuid/v4'
 
 export class SPSP {
   private config: Config
   private plugins: Plugins
   private connectionTag: ConnectionTag
+  private store: MemoryStore
 
   constructor (deps: Injector) {
     this.config = deps(Config)
     this.plugins = deps(Plugins)
     this.connectionTag = deps(ConnectionTag)
+    this.store = deps(MemoryStore)
   }
 
   async start (router: Router) {
@@ -73,7 +77,13 @@ export class SPSP {
         return ctx.throw(400, 'query string is too long; max 256 chars')
       }
 
-      const tag = this.connectionTag.encode(ctx.querystring)
+      const requestId = ctx.get('web-monetization-id') || uuid()
+      const params = {
+        ...ctx.query,
+        requestId
+      }
+
+      const tag = this.connectionTag.encode(JSON.stringify(params))
       const { destinationAccount, sharedSecret } = streamServer
         .generateAddressAndSecret(tag)
 

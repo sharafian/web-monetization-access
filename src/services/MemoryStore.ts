@@ -46,7 +46,7 @@ export class MemoryStore {
       entry.packets.shift()
     }
 
-    const windowSize = now - entry.packets[0]
+    const windowSize = now - entry.packets[0].date
     const windowSum = entry.packets.reduce((agg: number, packet: DatedPacket) => {
       return agg + packet.amount 
     }, 0)
