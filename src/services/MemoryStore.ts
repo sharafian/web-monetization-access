@@ -46,12 +46,16 @@ export class MemoryStore {
       entry.packets.shift()
     }
 
-    const windowSize = now - entry.packets[0].date
-    const windowSum = entry.packets.reduce((agg: number, packet: DatedPacket) => {
-      return agg + packet.amount 
-    }, 0)
+    if (!entry.packets.length) {
+      entry.rate = 0
+    } else {
+      const windowSize = (now - entry.packets[0].date) / 1000
+      const windowSum = entry.packets.reduce((agg: number, packet: DatedPacket) => {
+        return agg + packet.amount
+      }, 0)
 
-    entry.rate = windowSum / windowSize
+      entry.rate = windowSum / windowSize
+    }
   }
 
   add (key: string, amount: number) {
