@@ -1,6 +1,7 @@
 import { Injector } from 'reduct'
 import { Config } from './Config'
 import { SPSP } from './SPSP'
+import { Proof } from './Proof'
 
 import Koa, { Context } from 'koa'
 import Router from 'koa-router'
@@ -8,10 +9,12 @@ import Router from 'koa-router'
 export class App {
   private config: Config
   private spsp: SPSP
+  private proof: Proof
 
   constructor (deps: Injector) {
     this.config = deps(Config)
     this.spsp = deps(SPSP) 
+    this.proof = deps(Proof)
   }
 
   async start (): Promise<void> {
@@ -24,6 +27,7 @@ export class App {
     })
 
     await this.spsp.start(router)
+    await this.proof.start(router)
 
     app
       .use(router.allowedMethods())

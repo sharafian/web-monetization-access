@@ -28,14 +28,16 @@ export class SPSP {
     })
 
     streamServer.on('connection', connection => {
-      const tag = this.connectionTag.decode(connection.connectionTag)
-      console.log('got connection tag of', tag)
+      const tag = JSON.parse(this.connectionTag.decode(connection.connectionTag))
+      const requestId = tag.requestId
+      console.log('connection with metadata', JSON.stringify(tag))
 
       const onStream = (stream: DataAndMoneyStream) => {
         stream.setReceiveMax(Infinity)
         const onMoney = (amount: string) => {
           // TODO: forward based on metadata
           console.log('received money', amount)
+          this.store.add(requestId, Number(amount))
         }
 
         const onClose = () => cleanUp()
