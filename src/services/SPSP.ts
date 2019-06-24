@@ -68,6 +68,12 @@ export class SPSP {
       connection.on('stream', onStream)
     })
 
+    router.options('/pay', async (ctx: Context) => {
+      ctx.set('Access-Control-Allow-Origin', '*')
+      ctx.set('Access-Control-Allow-Headers', 'web-monetization-id')
+      ctx.body = 'OK'
+    })
+
     router.get('/pay', async (ctx: Context) => {
       if (!ctx.get('accept').includes('application/spsp4+json')) {
         return ctx.throw(400, 'only application/spsp4+json is supported')
@@ -92,6 +98,7 @@ export class SPSP {
         shared_secret: sharedSecret.toString('base64')
       }
 
+      ctx.set('Access-Control-Allow-Origin', '*')
       ctx.set('Content-Type', 'application/spsp4+json')
     })
   }
