@@ -31,7 +31,7 @@ The interaction between Web Monetization Access and your backend is just via a s
 - [ ] proxy ILP streams to the payment pointer in q string
 - [ ] use websockets or long-polling or polling to fetch the tokens
 - [x] algorithm to detect the bandwidth of a connection
-- [ ] use public key signature for the validation of JWT
+- [x] use public key signature for the validation of JWT
 - [ ] library that can be pulled into react for client
 - [ ] example server that uses the JWT
 - [ ] handle the timeout of the JWTs?
