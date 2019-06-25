@@ -1,4 +1,3 @@
-import { Config } from './Config'
 import { Plugins } from './Plugins'
 import { ConnectionTag } from './ConnectionTag'
 import { MemoryStore } from './MemoryStore'
@@ -37,7 +36,7 @@ export class SPSP {
 
       const existing = this.store.get(requestId)
       const existingMetadata = existing && existing.metadata
-      if (!deepEqual(existingMetadata, metadata)) {
+      if (existingMetadata && !deepEqual(existingMetadata, metadata)) {
         console.error('connection with conflicting metadata', existingMetadata, metadata)
         connection.destroy()
         return
