@@ -35,7 +35,7 @@ export class PayoutConnection {
   private target = 0
   private sent = 0
 
-  constructor (pointer: string, plugin: any) {
+  constructor ({ pointer, plugin }: { pointer: string, plugin: any }) {
     this.spspUrl = resolvePaymentPointer(pointer)
     this.plugin = plugin
   }
@@ -51,9 +51,10 @@ export class PayoutConnection {
       this.getState() === State.IDLE) &&
       this.stream
     ) {
+      this.setState(State.SENDING)
       this.stream.setSendMax(this.getSendMax())
     } else {
-      this.trySending()
+      this.safeTrySending()
     }
   }
 
@@ -149,7 +150,7 @@ export class PayoutConnection {
         }
 
         if (this.getSendMax() > 0) {
-          this.trySending()
+          this.safeTrySending()
         }
       })
     }
