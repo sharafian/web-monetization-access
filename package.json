@@ -14,6 +14,7 @@
     "base64url": "^3.0.1",
     "ilp-plugin": "^3.3.1",
     "ilp-protocol-stream": "^1.8.9",
+    "jsonwebtoken": "^8.5.1",
     "koa": "^2.7.0",
     "koa-router": "^7.4.0",
     "reduct": "^3.3.1",
@@ -21,6 +22,7 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
+    "@types/jsonwebtoken": "^8.3.2",
     "@types/koa": "^2.0.48",
     "@types/koa-router": "^7.0.41",
     "@types/node": "^12.0.10",
