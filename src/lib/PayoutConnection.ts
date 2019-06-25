@@ -24,6 +24,7 @@ export enum State {
 }
 
 export class PayoutConnection {
+  private pointer: string
   private spspUrl: string
   private connection?: Connection
   private stream?: DataAndMoneyStream
@@ -34,10 +35,22 @@ export class PayoutConnection {
 
   private target = 0
   private sent = 0
+  private totalStreamAmount = 0
 
   constructor ({ pointer, plugin }: { pointer: string, plugin: any }) {
+    this.pointer = pointer
     this.spspUrl = resolvePaymentPointer(pointer)
     this.plugin = plugin
+  }
+
+  getDebugInfo () {
+    return {
+      state: this.state,
+      target: this.target,
+      sent: this.sent,
+      streamSent: this.totalStreamAmount,
+      pointer: this.pointer
+    }
   }
 
   send (amount: number) {
@@ -63,11 +76,11 @@ export class PayoutConnection {
   }
 
   async close () {
-    if (this.getState() === State.IDLE && this.connection) {
-      this.closing = true
+    this.closing = true
+    if (this.connection) {
       await this.connection.destroy()
-      await this.plugin.disconnect()
     }
+    await this.plugin.disconnect()
   }
 
   private async spspQuery () {
@@ -134,7 +147,7 @@ export class PayoutConnection {
     }
 
     let appliedSent = false
-    let totalStreamAmount = 0
+    this.totalStreamAmount = 0
     const cleanUp = () => {
       setImmediate(() => {
         this.setState(State.DISCONNECTED)
@@ -146,7 +159,7 @@ export class PayoutConnection {
         connection.removeListener('error', onError)
 
         if (!appliedSent) {
-          this.sent += totalStreamAmount
+          this.sent += this.totalStreamAmount
         }
 
         if (this.getSendMax() > 0) {
@@ -158,8 +171,8 @@ export class PayoutConnection {
     const onClose = () => cleanUp()
     const onError = () => cleanUp()
     const onOutgoingMoney = (amount: string) => {
-      totalStreamAmount += Number(amount)
-      if (totalStreamAmount + this.sent === this.target) {
+      this.totalStreamAmount += Number(amount)
+      if (this.totalStreamAmount + this.sent === this.target) {
         this.setState(State.IDLE)
       }
     }

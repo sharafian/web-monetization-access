@@ -35,6 +35,7 @@ The interaction between Web Monetization Access and your backend is just via a s
 - [ ] library that can be pulled into react for client
 - [ ] example server that uses the JWT
 - [x] handle the timeout of the JWTs?
-- [ ] handle errors and expiry for uncooperative payment pointer
+- [x] handle errors and expiry for uncooperative payment pointer
 - [ ] add persistence in redis
 - [ ] add some kind of accounting persistence
+- [ ] structured logging

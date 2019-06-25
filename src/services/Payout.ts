@@ -47,13 +47,16 @@ export class Payout {
     const isExpired = Date.now() - payout.lastSent > CLEANUP_TIMEOUT
     const isIdle = payout.connection.isIdle()
 
-    if (isIdle && isExpired) {
-      await payout.connection.close()
+    if (isExpired) {
+      if (!isIdle) {
+        console.error('closing payout that was not idle.',
+          JSON.stringify(payout.connection.getDebugInfo()))
+      }
+
       delete this.payouts[paymentPointer]
+      await payout.connection.close()
     } else {
-      const msUntilExpiry = isIdle
-        ? CLEANUP_TIMEOUT - (Date.now() - payout.lastSent)
-        : CLEANUP_TIMEOUT // give some extra time to finish sending
+      const msUntilExpiry = CLEANUP_TIMEOUT - (Date.now() - payout.lastSent)
       this.makeTimer(paymentPointer, msUntilExpiry)
     }
   }
