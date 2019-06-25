@@ -6,6 +6,8 @@ import Router from 'koa-router'
 import * as jwt from 'jsonwebtoken'
 import * as crypto from 'crypto'
 
+const PROOF_EXPIRY = 3 * 1000
+
 export class Proof {
   private store: MemoryStore
   private config: Config
@@ -35,7 +37,8 @@ export class Proof {
       const data = this.store.get(ctx.params.id)
       const token: string = await new Promise((resolve: Function, reject: Function) => {
         jwt.sign(data, this.privateKey, {
-          algorithm: 'ES256'
+          algorithm: 'ES256',
+          expiresIn: PROOF_EXPIRY
         }, (err: Error, encoded: string) => {
           if (err) {
             reject(err) 

@@ -47,7 +47,8 @@ export class MemoryStore {
     if (!entry.packets.length) {
       entry.rate = 0
     } else {
-      const windowSize = (now - entry.packets[0].date) / 1000
+      // don't let a super recent packet inflate the rate by shrinking window size
+      const windowSize = Math.max(1, now - entry.packets[0].date) / 1000
       const windowSum = entry.packets.reduce((agg: number, packet: DatedPacket) => {
         return agg + packet.amount
       }, 0)
