@@ -7,6 +7,7 @@ import Router from 'koa-router'
 import { createServer, DataAndMoneyStream } from 'ilp-protocol-stream'
 import { Injector } from 'reduct'
 import uuid from 'uuid/v4'
+import deepEqual from 'deep-equal'
 
 export class SPSP {
   private config: Config
@@ -28,16 +29,24 @@ export class SPSP {
     })
 
     streamServer.on('connection', connection => {
-      const tag = JSON.parse(this.connectionTag.decode(connection.connectionTag))
-      const requestId = tag.requestId
-      console.log('connection with metadata', JSON.stringify(tag))
+      const metadata = JSON.parse(this.connectionTag.decode(connection.connectionTag))
+      const requestId = metadata.requestId
+      console.log('connection with metadata', JSON.stringify(metadata))
+
+      const existing = this.store.get(requestId)
+      const existingMetadata = existing && existing.metadata
+      if (!deepEqual(existingMetadata, metadata)) {
+        console.error('connection with conflicting metadata', existingMetadata, metadata)
+        connection.destroy()
+        return
+      }
 
       const onStream = (stream: DataAndMoneyStream) => {
         stream.setReceiveMax(Infinity)
         const onMoney = (amount: string) => {
           // TODO: forward based on metadata
           console.log('received money', amount)
-          this.store.add(requestId, Number(amount))
+          this.store.add(requestId, Number(amount), metadata)
         }
 
         const onClose = () => cleanUp()
@@ -91,9 +100,9 @@ export class SPSP {
         requestId
       }
 
-      const tag = this.connectionTag.encode(JSON.stringify(params))
+      const metadata = this.connectionTag.encode(JSON.stringify(params))
       const { destinationAccount, sharedSecret } = streamServer
-        .generateAddressAndSecret(tag)
+        .generateAddressAndSecret(metadata)
 
       ctx.body =  {
         destination_account: destinationAccount,

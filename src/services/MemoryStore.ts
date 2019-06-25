@@ -2,7 +2,7 @@ export interface TokenEntry {
   total: number
   rate: number
   packets: Array<DatedPacket>
-  metadata: object
+  metadata?: object
 }
 
 export interface DatedPacket {
@@ -28,10 +28,8 @@ export class MemoryStore {
       const newEntry = {
         total: 0,
         rate: 0,
-        packets: [],
-        // TODO: init with metadata?
-        metadata: {}
-      }
+        packets: []
+      } as TokenEntry
 
       this.entries[key] = newEntry
       return newEntry
@@ -58,9 +56,10 @@ export class MemoryStore {
     }
   }
 
-  add (key: string, amount: number) {
+  add (key: string, amount: number, metadata: object) {
     const entry = this.entry(key)
 
+    entry.metadata = metadata
     entry.total += amount
     entry.packets.push({
       date: Date.now(),
