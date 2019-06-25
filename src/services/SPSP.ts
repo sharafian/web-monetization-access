@@ -2,6 +2,8 @@ import { Config } from './Config'
 import { Plugins } from './Plugins'
 import { ConnectionTag } from './ConnectionTag'
 import { MemoryStore } from './MemoryStore'
+import { Payout } from './Payout'
+
 import { Context } from 'koa'
 import Router from 'koa-router'
 import { createServer, DataAndMoneyStream } from 'ilp-protocol-stream'
@@ -10,16 +12,16 @@ import uuid from 'uuid/v4'
 import deepEqual from 'deep-equal'
 
 export class SPSP {
-  private config: Config
   private plugins: Plugins
   private connectionTag: ConnectionTag
   private store: MemoryStore
+  private payout: Payout
 
   constructor (deps: Injector) {
-    this.config = deps(Config)
     this.plugins = deps(Plugins)
     this.connectionTag = deps(ConnectionTag)
     this.store = deps(MemoryStore)
+    this.payout = deps(Payout)
   }
 
   async start (router: Router) {
@@ -44,9 +46,12 @@ export class SPSP {
       const onStream = (stream: DataAndMoneyStream) => {
         stream.setReceiveMax(Infinity)
         const onMoney = (amount: string) => {
-          // TODO: forward based on metadata
           console.log('received money', amount)
           this.store.add(requestId, Number(amount), metadata)
+
+          if (metadata.pp) {
+            this.payout.send(metadata.pp, Number(amount))
+          }
         }
 
         const onClose = () => cleanUp()
