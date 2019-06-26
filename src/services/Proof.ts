@@ -49,6 +49,7 @@ export class Proof {
       })
 
       ctx.body = {
+        data,
         token
       }
     })
