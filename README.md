@@ -2,6 +2,14 @@
 > Securely manage your web monetized users without depending on the ILP stack
 > in your application.
 
+- [How it Works](#how-it-works)
+- [Testing Web Monetization Access](#testing-web-monetization-access)
+  - [Installation and Setup](#installation-and-setup)
+	- [Sending a Payment to the Server](#sending-a-payment-to-the-server)
+	- [Asking for Proof](#asking-for-proof)
+	- [Testing with Web Monetization](#testing-with-web-monetization)
+- [Development TODOs](#development-todos)
+
 When you use [Web Monetization](https://github.com/interledger/rfcs/blob/master/0028-web-monetization/0028-web-monetization.md), you often want to detect whether a visitor to your site is web monetized. You may want to make sure they pay a minimum amount per second, or a minimum amount in total to unlock your content.
 
 You can detect web monetization by looking at the client-side javascript events, but this can be spoofedby a clever visitor. The only way to guarantee that the visitor is paying is by having a service that actually accepts Interledger packets and communicates to your backend.
@@ -25,6 +33,8 @@ The interaction between Web Monetization Access and your backend is just via a s
 4. When the visitor wants to request exclusive Web Monetized content from your site, they will attach the signed JWT to their request. Your backend validates this JWT and returns exclusive content if it is valid.
 
 ## Testing Web Monetization Access
+
+### Installation and Setup
 
 First, install and build the necessary components.
 
@@ -56,6 +66,8 @@ cd web-monetization-access
 PORT=8080 npm start
 ```
 
+### Sending a Payment to the Server
+
 Now all the necessary components are running. To test a payment, you can use the `ilp-spsp` tool.
 
 ```shell
@@ -77,7 +89,60 @@ received money 1000
 got packet for 1000 units
 ```
 
-You can also try this by creating a webpage with a Web Monetization Meta tag pointing to `http://localhost:8080/pay?pp=http://localhost:9000`. Run the webpage on a local webserver and you'll see the packets going through in the logs if you're WM enabled. Your `moneyd` needs to be connected to the livenet for that to work, though.
+### Asking for Proof
+
+In the logs you can see that the Web Monetization Access server gave you an ID. This is based on the `Web-Monetization-Id` header, or generated randomly if that's not present. You can use this ID to fetch your proof of payment.
+
+```shell
+curl http://localhost:8080/pay/proof/2b4e7010-124f-44ec-b2f6-0fb2cb5e2156
+```
+
+You'll get a response that looks similar to the one below:
+
+```json
+{
+    "data": {
+        "metadata": {
+            "pp": "http://localhost:9000",
+            "requestId": "2b4e7010-124f-44ec-b2f6-0fb2cb5e2156"
+        },
+        "rate": 121.213,
+        "total": 1000
+    },
+    "token": "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0b3RhbCI6MTA2MTkxMTA2LCJyYXRlIjoyMTU1MzcuNiwibWV0YWRhdGEiOnsicHAiOiJodHRwOi8vbG9jYWxob3N0OjkwMDAiLCJyZXF1ZXN0SWQiOiI0YmQyMDM5Ny1jZjFhLTRkMjctODg3Mi0xZWFlNTk1MTBiOTUifSwiaWF0IjoxNTYxNTA4ODc3LCJleHAiOjE1NjE1MTE4Nzd9.nL1N1xz1BTqTy-XyDLVyb6wdzfNzOkFUt1aPUVeOIXP3opGQ6vNumbbKsTYAEJ7p86KRnvGVSuz5p64igDZozw"
+}
+```
+
+This token is a signed JWT which can be verified by anyone. You can get the public key it's signed with by querying `http://localhost:8080/pay/public_key`
+
+```json
+{
+    "public_key": "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAElRLGSaC2JyslmL+55TX0QOAQZcrpfnrK\niTzDVw0/Jml93IsoWdVtJrpDzpkvE76qKuxYQh8GS33kx+HCTBGjrA==\n-----END PUBLIC KEY-----\n"
+}
+```
+
+This gives you the public key in the `pem` format. It can be used to verify the JWT, which was signed with the `ES256` algorithm.
+
+### Testing with Web Monetization
+
+You can also try this by creating a webpage with a Web Monetization Meta tag pointing to `http://localhost:8080/pay?pp=http://localhost:9000`. Run the webpage on a local webserver and you'll see the packets going through in the logs if you're WM enabled.
+
+**Note:** Your `moneyd` needs to be connected to the livenet for this to work.
+
+Edit an `index.html` file.
+
+```html
+<html>
+  <head>
+    <meta name="monetization" content="http://localhost:8080/pay?pp=http://localhost:9000">
+  </head>
+  <body>
+    <h1>Hello World</h1>
+  </body>
+</html>
+```
+
+And then host it by running `npx http-server .` in the same diretory.
 
 ## Development TODOs
 
