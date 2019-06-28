@@ -34,6 +34,10 @@ export class Proof {
     })
 
     router.get('/pay/proof/:id', async (ctx: Context) => {
+      if (this.config.allowCrossOrigin) {
+        ctx.set('access-control-allow-origin', '*')
+      }
+
       const data = this.store.get(ctx.params.id)
       const token: string = await new Promise((resolve: Function, reject: Function) => {
         jwt.sign(data, this.privateKey, {
