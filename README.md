@@ -114,35 +114,85 @@ You'll get a response that looks similar to the one below:
 ```
 
 This token is a signed JWT which can be verified by anyone. You can get the public key it's signed with by querying `http://localhost:8080/pay/public_key`
+      // TODO: remove or make an option at least
 
 ```json
 {
     "public_key": "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAElRLGSaC2JyslmL+55TX0QOAQZcrpfnrK\niTzDVw0/Jml93IsoWdVtJrpDzpkvE76qKuxYQh8GS33kx+HCTBGjrA==\n-----END PUBLIC KEY-----\n"
 }
 ```
+      // TODO: remove or make an option at least
 
 This gives you the public key in the `pem` format. It can be used to verify the JWT, which was signed with the `ES256` algorithm.
 
 ### Testing with Web Monetization
 
-You can also try this by creating a webpage with a Web Monetization Meta tag pointing to `http://localhost:8080/pay?pp=http://localhost:9000`. Run the webpage on a local webserver and you'll see the packets going through in the logs if you're WM enabled.
-
 **Note:** Your `moneyd` needs to be connected to the livenet for this to work.
 
-Edit an `index.html` file.
+This repository includes an example project which uses Web Monetization Access to serve an image exclusively to web monetized users. To start the service, run the following steps:
 
-```html
-<html>
-  <head>
-    <meta name="monetization" content="http://localhost:8080/pay?pp=http://localhost:9000">
-  </head>
-  <body>
-    <h1>Hello World</h1>
-  </body>
-</html>
+#### Start Moneyd
+
+Connect to the Interledger livenet with your method of choice.
+
+```shell
+moneyd xrp:start
 ```
 
-And then host it by running `npx http-server .` in the same diretory.
+#### Start SPSP Server
+
+Next we'll start up our local SPSP server.
+
+```shell
+ilp-spsp-server --localtunnel false --port 9000
+```
+
+#### Start Web Monetization Access
+
+Now the Web Monetization Access Server. We have to enable the `ALLOW_CROSS_ORIGIN` flag for our example server to work. In production you'll likely be serving Web Monetization Access on the same domain as the rest of your site so you don't need to set that flag.
+
+```shell
+cd web-monetization-access
+ALLOW_CROSS_ORIGIN=true npm start
+```
+
+#### Launch Gallery API
+
+This is the API server that will serve our exclusive content
+
+```shell
+cd web-monetization-acccess/examples/gallery-api
+npm install
+npm start
+```
+
+#### Launch Gallery Client
+
+The client for our example gallery uses react-scripts, which comes with its own server.
+
+```shell
+cd web-monetization-access/examples/gallery
+npm install
+npm start
+```
+
+#### Testing it all out
+
+Make sure your browser is web-monetized, whether by the Coil extension or another method. Load up `localhost:3000` in your browser (The URL output by the [launch gallery client](#launch-gallery-client) step.
+
+You'll see the page go through the following phases:
+
+- `Awaiting web monetization...`
+- `Loading image...`
+- Image is loaded and displayed
+
+What's happening behind the scenese is:
+
+- The webpage detects you're web monetized (client-side) and waits for web monetization to start
+- Once web monetization has started the client asks the WM access server for proof
+- The client gets the proof and presents it to the gallery API when it asks for the image
+- The gallery api verifies the proof and ensures that the user has paid before serving the image
+- The gallery api serves the image and the client renders it
 
 ## Development TODOs
 
