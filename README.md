@@ -114,14 +114,12 @@ You'll get a response that looks similar to the one below:
 ```
 
 This token is a signed JWT which can be verified by anyone. You can get the public key it's signed with by querying `http://localhost:8080/pay/public_key`
-      // TODO: remove or make an option at least
 
 ```json
 {
     "public_key": "-----BEGIN PUBLIC KEY-----\nMFYwEAYHKoZIzj0CAQYFK4EEAAoDQgAElRLGSaC2JyslmL+55TX0QOAQZcrpfnrK\niTzDVw0/Jml93IsoWdVtJrpDzpkvE76qKuxYQh8GS33kx+HCTBGjrA==\n-----END PUBLIC KEY-----\n"
 }
 ```
-      // TODO: remove or make an option at least
 
 This gives you the public key in the `pem` format. It can be used to verify the JWT, which was signed with the `ES256` algorithm.
 
@@ -203,7 +201,7 @@ What's happening behind the scenese is:
 - [x] algorithm to detect the bandwidth of a connection
 - [x] use public key signature for the validation of JWT
 - [ ] library that can be pulled into react for client
-- [ ] example server that uses the JWT
+- [x] example server that uses the JWT
 - [x] handle the timeout of the JWTs?
 - [x] handle errors and expiry for uncooperative payment pointer
 - [ ] add persistence in redis
